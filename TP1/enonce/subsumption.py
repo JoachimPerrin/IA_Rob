@@ -31,6 +31,13 @@ class SubsumptionArchitecture:
                 'angular': float between -1 and 1
             }
         """
+
+        for prio in range(4):
+            for behavior in behavior:
+                if(behavior.is_active and behavior.priority == prio):
+                    behavior.execute
+                    break
+
         print(self.sensors_data)
         return {
             'forward': 0.5,
