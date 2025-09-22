@@ -39,38 +39,55 @@ class MoveForwardInRandomDirection(Behavior):
 
     def execute(self, sensors_data):
         val = np.random.rand(2)
-        return {"forward": val[0], "angular": val[1]}
-
+        return {'forward': val[0], 'angular': val[1]}
 
 class MoveTowardsCoin(Behavior):
-    def __init__(self, prio: int = 3, tolerance: float = 0.9):
+    def __init__(self, prio: int = 3):
         self.priority = prio
-        self.active = True
-        self.tolerance = np.max(np.min(tolerance, 0.0), 1.0)
-
+    
     def execute(self, sensors_data):
-        if(sensors_data['rgb'][0] >= self.tolerance * 255 
-           and sensors_data['rgb'][1] >= self.tolerance * 255 
-           and sensors_data['rgb'][2] <= (1-self.tolerance) * 255):
-            return {"forward": 1.0}
+        colors = sensors_data['rgb']
+
+        self.active = False
+        
+        if colors is not None:
+            for color in colors:
+                if color[0] == 255 and color[1] >= 215 and color[2] == 0:
+                    self.active = True
+                    
+        if self.active:
+            return {'forward': 1.0, 'angular':0.0}
+        else:
+            return {'forward':0.0, 'angular':0.0}
+
 
 class AvoidObstacles(Behavior):
-    def __init__(self, prio: int = 2, threshold: float = 0.5, ang_vel: float = 1.0):
+    def __init__(self, prio: int = 2):
         self.priority = prio
-        self.active = True
-        self.threshold = threshold
-        self.ang_vel = np.max(np.min(ang_vel, 0.0), 1.0)
 
     def execute(self, sensors_data):
-        if(sensors_data['distance'] < self.threshold):
-            return {"angular": self.ang}
+        dist = sensors_data['distance']
+        print("HERE")
+        print(dist)
+        if dist is not None and np.any(dist < 1.0):
+            self.active = True
+            
+            return {'forward': 0.5, 'angular': 1.0}
+        else:
+            self.active = False
+            return {'forward': 0.0, 'angular': 0.0}
 
 class Bump(Behavior):
     def __init__(self, prio: int = 1, reactivness: float = -1.0):
         self.priority = prio
-        self.active = True
-        self.reactivness = np.max(np.min(reactivness, -1.0), 0.0) # Clamp between -1.0 and 0.0
+        self.reactivness = reactivness
 
     def execute(self, sensors_data):
-        if(self.sensor['bumb'] == True):
-            return {"forward": self.reactivness}
+        bumps = sensors_data['bump']
+        self.active = False
+        if bumps is not None and np.any(bumps < 1.0):
+            self.active = True
+            return {'forward': self.reactivness, 'angular': 0.0}
+        else:
+            self.active = False
+            return {'forward': 0.0, 'angular': 0.0}

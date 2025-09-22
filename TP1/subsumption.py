@@ -15,6 +15,11 @@ class SubsumptionArchitecture:
 
     def add_behavior(self, behavior):
         self.behaviors.append(behavior)
+        self.behaviors.sort(key=lambda x: x.priority)
+        for b in self.behaviors:
+            print(b.priority)
+        print("done")
+    
 
     def update_sensors(self, sensors_data):
         self.sensors_data.update(sensors_data)
@@ -31,15 +36,15 @@ class SubsumptionArchitecture:
                 'angular': float between -1 and 1
             }
         """
+        
+        test = 5
+        action = {'forward': 0.0, 'angular': 0.0}
+        for behavior in self.behaviors:
+            action = behavior.execute(self.sensors_data)
+            if behavior.is_active():
+                test = behavior.priority
+                break
 
-        for prio in range(4):
-            for behavior in behavior:
-                if(behavior.is_active and behavior.priority == prio):
-                    behavior.execute
-                    break
-
+        print(f"Choose behaviors {test}")
         print(self.sensors_data)
-        return {
-            'forward': 0.5,
-            'angular': 1.
-        }
+        return action
